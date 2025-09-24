@@ -1,4 +1,6 @@
-# Copied from 06_Smart Data Cleaning.py lines 1-203
+"""
+# Copied from lines 1-203 of AutoDQ/06_Smart Data Cleaning.py
+"""
 # Databricks notebook source
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
@@ -202,4 +204,5 @@ else:
 
 # MAGIC %sql
 # MAGIC select * from dq_metadata.data_cleaning_log;
+
 

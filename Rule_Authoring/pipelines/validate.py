@@ -1,4 +1,61 @@
-# Copied from 04_Great_Expectation_ New Logic.py lines 56-447
+"""
+# Copied from lines 1-447 of AutoDQ/04_Great_Expectation_ New Logic.py
+"""
+# Databricks notebook source
+# 🔧 Spark Configuration for Databricks on GCP
+
+# ========== Core Execution ==========
+spark.conf.set("spark.sql.shuffle.partitions", "256")                # Higher shuffle partitions for GCP clusters
+spark.conf.set("spark.sql.adaptive.enabled", "true")                 # Adaptive Query Execution
+spark.conf.set("spark.sql.adaptive.coalescePartitions.enabled", "true")
+spark.conf.set("spark.sql.adaptive.skewJoin.enabled", "true")
+spark.conf.set("spark.sql.adaptive.localShuffleReader.enabled", "true")
+
+# ========== Delta Optimizations ==========
+spark.conf.set("spark.databricks.delta.optimizeWrite.enabled", "true")
+spark.conf.set("spark.databricks.delta.autoCompact.enabled", "true")
+spark.conf.set("spark.databricks.delta.retentionDurationCheck.enabled", "false")  # Needed if VACUUM with <7d retain
+
+# ========== Storage & GCS Connector ==========
+spark.conf.set("spark.hadoop.fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
+spark.conf.set("spark.hadoop.google.cloud.auth.service.account.enable", "true")
+spark.conf.set("spark.hadoop.fs.gs.metadata.cache.enable", "true")   # Metadata caching for GCS
+
+# ========== DataFrame / Execution ==========
+spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")  # Enable Arrow for PySpark <-> Pandas
+spark.conf.set("spark.sql.broadcastTimeout", "900")                  # Longer timeout for big joins on GCP
+spark.conf.set("spark.sql.files.maxPartitionBytes", "134217728")     # 128 MB partitions
+spark.conf.set("spark.sql.files.openCostInBytes", "67108864")        # 64 MB → improves GCS listing perf
+
+# ========== Parquet / ORC ==========
+spark.conf.set("spark.sql.parquet.filterPushdown", "true")
+spark.conf.set("spark.sql.parquet.mergeSchema", "false")
+
+# ========== Cleaner / GC ==========
+# spark.conf.set("spark.cleaner.referenceTracking.cleanCheckpoints", "true")  # Cannot modify this config
+spark.conf.set("spark.sql.legacy.parquet.int96RebaseModeInRead", "CORRECTED")
+spark.conf.set("spark.sql.legacy.parquet.int96RebaseModeInWrite", "CORRECTED")
+
+print("Spark configuration applied for GCP cluster")
+
+# COMMAND ----------
+
+# MAGIC %run ./01_setup_environment
+
+# COMMAND ----------
+
+# MAGIC %restart_python
+
+# COMMAND ----------
+
+# MAGIC %run ./02_load_bronze_tables
+
+# COMMAND ----------
+
+# MAGIC %run ./03_define_rules
+
+# COMMAND ----------
+
 from pyspark.sql.types import StringType, NumericType, StructType, StructField
 import pyspark.sql.functions as F
 from pyspark.sql.functions import col, lit
@@ -72,7 +129,7 @@ def get_expectation_kwargs(rule, col_name=None, df=None):
       
     # Rule: Check if column exists in table schema
     #  Does not need reference/master table. Just validates presence in the DataFrame.
-    
+
     # -----------------------------------------------------------------------------
 # Schema Contract Configuration (for expect_column_to_exist rule)
 # -----------------------------------------------------------------------------
@@ -391,4 +448,5 @@ else:
 
 # MAGIC %sql
 # MAGIC select * from dq_validation.gx_dq_validation_errors
+
 
