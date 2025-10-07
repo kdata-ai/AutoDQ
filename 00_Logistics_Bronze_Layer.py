@@ -4,6 +4,7 @@
 # testing it again
 spark.catalog.clearCache()
 #Load Bronze tables
+#testing
 
 # COMMAND ----------
 
