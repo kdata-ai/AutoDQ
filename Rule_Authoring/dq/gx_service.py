@@ -2,15 +2,14 @@ from typing import List, Optional
 from pyspark.sql import SparkSession
 
 try:
-    # GE >= 0.18/1.x
-    from great_expectations.data_context import get_context  # type: ignore
-except Exception:  # pragma: no cover
+    from great_expectations.data_context import get_context
+except Exception:
     # GE legacy fallback
-    from great_expectations import get_context  # type: ignore
+    from great_expectations import get_context
 
 
 class GXService:
-    """Service for working with Great Expectations and Spark in Databricks.
+    """Service for working with Great Expectations in Databricks.
 
     Responsibilities:
     - Initialize and cache a GE Data Context
@@ -42,11 +41,9 @@ class GXService:
     def get_or_create_spark_datasource(self):
         """Create or fetch a Spark Datasource in GE."""
         context = self.get_context()
-        # New-style API
         try:
             return context.sources.add_or_update_spark(name=self.datasource_name)
         except AttributeError:
-            # Fallback for older GE versions is not implemented here intentionally.
             raise RuntimeError(
                 "Your installed Great Expectations version does not support 'sources.add_or_update_spark'."
             )
@@ -62,7 +59,6 @@ class GXService:
         self.ensure_schema(schema_name)
         datasource = self.get_or_create_spark_datasource()
 
-        # Prefer generic table asset; fall back to Delta asset if needed.
         try:
             asset = datasource.add_table_asset(
                 name=asset_name, table_name=table_name, schema_name=schema_name
@@ -72,12 +68,7 @@ class GXService:
                 name=asset_name, database=schema_name, table=table_name
             )
 
-        try:
-            self.get_context().save()
-        except Exception:
-            # Some GE versions do not require explicit save
-            pass
-
+        self.get_context().save()
         return asset
 
     def list_assets(self) -> List[str]:
@@ -90,7 +81,6 @@ class GXService:
             return []
 
 
-# Convenience module-level helpers
 _default_service = GXService()
 
 
