@@ -27,6 +27,8 @@ def main():
 
     ensure_schema(schema_name)
     create_asset(asset_name=asset_name, schema_name=schema_name, table_name=table_name, datasource_name=datasource_name)
+    
+    # to be removed before merging into main, no need to remove in develop
     print(f"Created/updated GX data asset '{asset_name}' for '{schema_name}.{table_name}' in datasource '{datasource_name}'.")
 
 
